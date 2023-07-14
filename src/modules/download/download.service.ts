@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { FileDTO } from './upload.dto';
 import { createClient } from '@supabase/supabase-js';
+import { DownloadDTO } from './download.dto';
 
 @Injectable()
-export class UploadService {
-  async upload(file: FileDTO) {
+export class DownloadService {
+  async execute(data: DownloadDTO) {
     const supabaseURL = process.env.SUPABASE_URL;
     const supabaseKEY = process.env.SUPABASE_KEY;
 
@@ -14,12 +14,10 @@ export class UploadService {
       },
     });
 
-    const data = await supabase.storage
-      .from('youtube')
-      .upload(file.originalname, file.buffer, {
-        upsert: true,
-      });
+    const url = await supabase.storage
+      .from(data.bucket)
+      .createSignedUrl(data.path, data.expiresIn ?? 70);
 
-    return data;
+    return url;
   }
 }
